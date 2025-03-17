@@ -380,4 +380,12 @@ window.onload = async () => {
     displayStatus('Loop and random states loaded');
     await loadLastPlayedSong();
     displayStatus('App fully loaded');
+
+    // Add spacebar play/pause functionality for PC
+    document.addEventListener('keydown', (event) => {
+        if (event.code === 'Space') {
+            event.preventDefault(); // Prevent page scroll
+            togglePlayStop(); // Trigger play/pause
+        }
+    });
 };
