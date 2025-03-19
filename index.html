@@ -9,29 +9,26 @@
 </head>
 <body>
     <input type="file" id="audioFile" accept=".mp3,.m4a,audio/*" multiple onchange="saveFiles()">
+    <ul id="songList"></ul>
+
+    <div id="status"></div>
+
     <audio id="audioPlayer" preload="auto" style="display: none;"></audio>
     <div class="controls">
         <button id="prevBtn" onclick="playPreviousSong()">⏮</button>
-        <button id="playStopBtn" onclick="togglePlayStop()">Play</button>
+        <button id="playStopBtn" onclick="togglePlayStop()">▶️</button>
         <button id="nextBtn" onclick="playNextSong()">⏭</button>
-        <label for="loopToggle">Loop:</label>
-        <div class="switch">
-            <input type="checkbox" id="loopToggle" onchange="toggleLoop()">
-            <span class="slider"></span>
-        </div>
-        <label for="randomToggle">Random:</label>
-        <div class="switch">
-            <input type="checkbox" id="randomToggle" onchange="toggleRandom()">
-            <span class="slider"></span>
-        </div>
     </div>
+
+    <div class="controls">
+        <button id="loopBtn" onclick="toggleLoop()">🔁</button>
+        <button id="randomBtn" onclick="toggleRandom()">🔀</button>
+    </div>
+
     <div class="seek-time-container">
         <input type="range" id="seekBar" min="0" max="100" value="0" oninput="seekToTime(this.value)">
         <div id="timeDisplay">0:00 / 0:00</div>
     </div>
-    <ul id="songList"></ul>
-
-    <div id="status"></div>
 
     <script src="script.js"></script>
 

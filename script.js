@@ -1,12 +1,12 @@
 // DOM Elements
 const audioPlayer = document.getElementById('audioPlayer') || {};
-const loopToggle = document.getElementById('loopToggle') || {};
+const loopBtn = document.getElementById('loopBtn') || {};
 const playStopButton = document.getElementById('playStopBtn') || {};
 const statusContainer = document.getElementById('status');
 const songListContainer = document.getElementById('songList');
 const seekBar = document.getElementById('seekBar');
-const randomToggle = document.getElementById('randomToggle');
-const timeDisplay = document.getElementById('timeDisplay'); // New element
+const randomBtn = document.getElementById('randomBtn');
+const timeDisplay = document.getElementById('timeDisplay');
 if (!songListContainer || !statusContainer) {
     console.error('Required DOM elements missing (#songList or #status)');
 }
@@ -17,6 +17,7 @@ let currentSongIndex = -1;
 let currentSongName = null;
 let database = null;
 let isRandom = false;
+let loopMode = 0; // 0 = no loop, 1 = loop song, 2 = loop playlist
 
 // Utility: Update status messages in the UI
 function displayStatus(message) {
@@ -93,7 +94,7 @@ async function saveFiles() {
 
     transaction.oncomplete = () => {
         refreshSongList();
-        fileInput.value = ''; // Clear input after upload
+        fileInput.value = '';
     };
 }
 
@@ -167,7 +168,7 @@ async function playSavedSong(songName) {
     const song = await getSongByName(songName);
     audioPlayer.pause();
     audioPlayer.src = URL.createObjectURL(song.data);
-    audioPlayer.loop = loopToggle.checked;
+    audioPlayer.loop = (loopMode === 1); // Loop song only if mode is 1
 
     currentSongIndex = songList.indexOf(songName);
     currentSongName = songName;
@@ -176,16 +177,20 @@ async function playSavedSong(songName) {
     displayStatus(`Loaded: ${songName}`);
     togglePlayStop();
 
-    // Update seek bar range and current time
     audioPlayer.onloadedmetadata = () => {
         seekBar.max = audioPlayer.duration;
         seekBar.value = audioPlayer.currentTime;
-        updateTimeDisplay(); // Initial update
+        updateTimeDisplay();
     };
     audioPlayer.ontimeupdate = () => {
         seekBar.value = audioPlayer.currentTime;
-        localStorage.setItem('currentTime', audioPlayer.currentTime); // Save time
-        updateTimeDisplay(); // Live update
+        localStorage.setItem('currentTime', audioPlayer.currentTime);
+        updateTimeDisplay();
+    };
+    audioPlayer.onended = () => {
+        if (loopMode === 2) { // Loop playlist
+            playNextSong();
+        }
     };
 }
 
@@ -212,12 +217,11 @@ function togglePlayStop() {
         } else if (audioPlayer.src) {
             audioPlayer.play()
                 .then(() => {
-                    playStopButton.textContent = 'Stop';
-                    playStopButton.setAttribute('aria-label', 'Stop'); // Set when playing
+                    playStopButton.textContent = '⏹️';
+                    playStopButton.setAttribute('aria-label', 'Stop');
                     displayStatus(`Playing: ${songList[currentSongIndex] || 'temporary file'}`);
                     updateSongState('playing');
                     document.title = songList[currentSongIndex] || 'FUS';
-                    // Scroll to the playing song
                     const playingButton = document.getElementById('playing');
                     if (playingButton) {
                         playingButton.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -229,8 +233,8 @@ function togglePlayStop() {
         }
     } else {
         audioPlayer.pause();
-        playStopButton.textContent = 'Play';
-        playStopButton.removeAttribute('aria-label'); // Remove when paused
+        playStopButton.textContent = '▶️';
+        playStopButton.removeAttribute('aria-label');
         displayStatus('Paused');
         updateSongState('paused');
     }
@@ -241,7 +245,7 @@ function seekToTime(value) {
     if (audioPlayer.src) {
         audioPlayer.currentTime = value;
         displayStatus(`Seek to ${Math.floor(value)}s`);
-        updateTimeDisplay(); // Update display after seeking
+        updateTimeDisplay();
     }
 }
 
@@ -265,7 +269,9 @@ function playNextSong() {
 
 // Playback: Toggle random playback
 function toggleRandom() {
-    isRandom = randomToggle.checked;
+    isRandom = !isRandom;
+    randomBtn.textContent = isRandom ? '🔀' : '➡️';
+    randomBtn.classList.toggle('active', isRandom);
     displayStatus(`Random playback ${isRandom ? 'enabled' : 'disabled'}`);
     localStorage.setItem('randomEnabled', isRandom);
 }
@@ -274,26 +280,36 @@ function toggleRandom() {
 function loadRandomState() {
     const randomEnabled = localStorage.getItem('randomEnabled');
     if (randomEnabled !== null) {
-        randomToggle.checked = randomEnabled === 'true';
-        isRandom = randomToggle.checked;
+        isRandom = randomEnabled === 'true';
+        randomBtn.textContent = isRandom ? '🔀' : '➡️';
+        randomBtn.classList.toggle('active', isRandom);
         displayStatus(`Random playback ${isRandom ? 'enabled' : 'disabled'} (loaded from storage)`);
     }
 }
 
-// Loop: Toggle looping state
+// Loop: Toggle looping state (no loop, loop song, loop playlist)
 function toggleLoop() {
-    audioPlayer.loop = loopToggle.checked;
-    localStorage.setItem('loopEnabled', loopToggle.checked);
-    displayStatus(`Looping ${loopToggle.checked ? 'enabled' : 'disabled'}`);
+    loopMode = (loopMode + 1) % 3;
+    audioPlayer.loop = (loopMode === 1);
+    if (loopMode === 0) loopBtn.textContent = '🔁';
+    else if (loopMode === 1) loopBtn.textContent = '🔂';
+    else loopBtn.textContent = '🔁';
+    loopBtn.classList.toggle('active', loopMode !== 0);
+    localStorage.setItem('loopMode', loopMode);
+    displayStatus(`Loop mode: ${loopMode === 0 ? 'No loop' : loopMode === 1 ? 'Loop song' : 'Loop playlist'}`);
 }
 
 // Loop: Load saved loop state
 function loadLoopState() {
-    const loopEnabled = localStorage.getItem('loopEnabled');
-    if (loopEnabled !== null) {
-        loopToggle.checked = loopEnabled === 'true';
-        audioPlayer.loop = loopToggle.checked;
-        displayStatus(`Looping ${loopToggle.checked ? 'enabled' : 'disabled'} (loaded from storage)`);
+    const savedLoopMode = localStorage.getItem('loopMode');
+    if (savedLoopMode !== null) {
+        loopMode = parseInt(savedLoopMode, 10);
+        audioPlayer.loop = (loopMode === 1);
+        if (loopMode === 0) loopBtn.textContent = '🔁';
+        else if (loopMode === 1) loopBtn.textContent = '🔂';
+        else loopBtn.textContent = '🔁';
+        loopBtn.classList.toggle('active', loopMode !== 0);
+        displayStatus(`Loop mode: ${loopMode === 0 ? 'No loop' : loopMode === 1 ? 'Loop song' : 'Loop playlist'} (loaded from storage)`);
     }
 }
 
@@ -316,7 +332,7 @@ async function removeSong(songName) {
             currentSongName = null;
             localStorage.removeItem('currentSongName');
             localStorage.removeItem('currentTime');
-            updateTimeDisplay(); // Reset display
+            updateTimeDisplay();
         }
         displayStatus(`Removed: ${songName}`);
         refreshSongList();
@@ -332,22 +348,20 @@ async function loadLastPlayedSong() {
         currentSongIndex = songList.indexOf(savedSongName);
         const song = await getSongByName(savedSongName);
         audioPlayer.src = URL.createObjectURL(song.data);
-        audioPlayer.loop = loopToggle.checked;
-        audioPlayer.currentTime = savedTime; // Restore time
+        audioPlayer.loop = (loopMode === 1);
+        audioPlayer.currentTime = savedTime;
         playStopButton.textContent = 'Play';
         displayStatus(`Loaded: ${savedSongName} at ${Math.floor(savedTime)}s (press Play)`);
         updateSongState('paused');
-        // Update seek bar range and time display
         audioPlayer.onloadedmetadata = () => {
             seekBar.max = audioPlayer.duration;
             seekBar.value = audioPlayer.currentTime;
-            updateTimeDisplay(); // Initial update
+            updateTimeDisplay();
         };
-        // Add ontimeupdate to update UI when playing resumes
         audioPlayer.ontimeupdate = () => {
             seekBar.value = audioPlayer.currentTime;
-            localStorage.setItem('currentTime', audioPlayer.currentTime); // Save time
-            updateTimeDisplay(); // Live update
+            localStorage.setItem('currentTime', audioPlayer.currentTime);
+            updateTimeDisplay();
         };
     } else {
         displayStatus('No valid song to resume or song list not yet loaded');
@@ -381,11 +395,10 @@ window.onload = async () => {
     await loadLastPlayedSong();
     displayStatus('App fully loaded');
 
-    // Add spacebar play/pause functionality for PC
     document.addEventListener('keydown', (event) => {
         if (event.code === 'Space') {
-            event.preventDefault(); // Prevent page scroll
-            togglePlayStop(); // Trigger play/pause
+            event.preventDefault();
+            togglePlayStop();
         }
     });
 };
