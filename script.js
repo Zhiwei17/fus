@@ -274,6 +274,8 @@ function toggleRandom() {
     randomBtn.classList.toggle('active', isRandom);
     displayStatus(`Random playback ${isRandom ? 'enabled' : 'disabled'}`);
     localStorage.setItem('randomEnabled', isRandom);
+
+    setTimeout(() => randomBtn.blur(), 0);
 }
 
 // Playback: Load saved random state
@@ -297,6 +299,8 @@ function toggleLoop() {
     loopBtn.classList.toggle('active', loopMode !== 0);
     localStorage.setItem('loopMode', loopMode);
     displayStatus(`Loop mode: ${loopMode === 0 ? 'No loop' : loopMode === 1 ? 'Loop song' : 'Loop playlist'}`);
+
+    setTimeout(() => loopBtn.blur(), 0);
 }
 
 // Loop: Load saved loop state

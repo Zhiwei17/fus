@@ -139,10 +139,6 @@ button.removeBtn:hover {
     border: 1px solid #fff;
 }
 
-#loopBtn:hover, #randomBtn:hover {
-    background-color: #777;
-}
-
 .seek-time-container {
     display: flex;
     align-items: center;
