@@ -152,7 +152,7 @@ function createSongListItem(songName) {
     playButton.addEventListener('click', () => playSavedSong(songName));
 
     const removeButton = document.createElement('button');
-    removeButton.textContent = 'Remove';
+    removeButton.textContent = '🗑️';
     removeButton.classList.add('removeBtn');
     removeButton.addEventListener('click', () => removeSong(songName));
 
