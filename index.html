@@ -35,8 +35,6 @@
     <!-- Service worker registration -->
     <script>
         if ('serviceWorker' in navigator) {
-            const statusDiv = document.getElementById('status');
-            let p = document.createElement('p');
             navigator.serviceWorker.register('sw.js').then(() => {
                 displayStatus('Service Worker registered');
             }).catch((err) => {

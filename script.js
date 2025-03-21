@@ -1,3 +1,7 @@
+window.addEventListener('offline', () => {
+    displayStatus('Offline mode');
+});
+
 // DOM Elements
 const audioPlayer = document.getElementById('audioPlayer') || {};
 const loopBtn = document.getElementById('loopBtn') || {};

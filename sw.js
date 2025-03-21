@@ -1,6 +1,9 @@
-const CACHE_NAME = 'music-player-v1';
+const CACHE_NAME = 'fus-cache-v1';
 const FILES_TO_CACHE = [
+    '/',
     '/index.html',
+    '/styles.css',
+    '/script.js',
     '/manifest.json',
     '/icons/icon-192x192.png',
     '/icons/icon-512x512.png'
@@ -9,7 +12,6 @@ const FILES_TO_CACHE = [
 self.addEventListener('install', (event) => {
     event.waitUntil(
         caches.open(CACHE_NAME).then((cache) => {
-            console.log('Caching app shell');
             return cache.addAll(FILES_TO_CACHE);
         })
     );

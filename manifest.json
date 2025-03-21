@@ -2,12 +2,12 @@
     "name": "FUS",
     "short_name": "FUS",
     "start_url": "/fus",
-    "scope": "/fus",
+    "scope": "/fus/",
     "display": "standalone",
     "background_color": "#444",
     "theme_color": "#444",
     "icons": [
-        { "src": "icons/icon-192x192.png", "sizes": "192x192", "type": "image/png" },
-        { "src": "icons/icon-512x512.png", "sizes": "512x512", "type": "image/png" }
+        { "src": "icons/icon-192x192.png", "sizes": "192x192", "type": "image/png"},
+        { "src": "icons/icon-512x512.png", "sizes": "512x512", "type": "image/png"}
     ]
 }
